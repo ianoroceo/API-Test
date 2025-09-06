@@ -1,0 +1,238 @@
+{
+  "info": {
+    "name": "AirportGap API Tests",
+    "_postman_id": "12345678-aaaa-bbbb-cccc-123456789abc",
+    "description": "Sample automated tests for AirportGap using Postman",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Airports",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/airports",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "airports"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test(\"Should return 30 airports\", function () { pm.expect(json.data.length).to.eql(30); });",
+              "pm.test(\"Has links\", function () { pm.expect(json).to.have.property('links'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Airport by ID (MNL)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/airports/MNL",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "airports",
+            "MNL"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test(\"IATA code is MNL\", function () { pm.expect(json.data.attributes.iata).to.eql('MNL'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Distance KIX -> NRT",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"from\": \"KIX\", \"to\": \"NRT\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/airports/distance",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "airports",
+            "distance"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "pm.test(\"Distance has valid units\", function () {",
+              " pm.expect(json.data.attributes.miles).to.be.above(0);",
+              " pm.expect(json.data.attributes.kilometers).to.be.above(0);",
+              " pm.expect(json.data.attributes.nautical_miles).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites CRUD",
+      "item": [
+        {
+          "name": "Create Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token={{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"airport_id\": \"JFK\", \"note\": \"{{note}}\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/favorites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Created\", function () { pm.response.to.have.status(201); });",
+                  "pm.environment.set(\"fav_id\", pm.response.json().data.id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "let rand = Math.random().toString(36).substring(2,8);",
+                  "pm.environment.set('note', `created-by-postman-${rand}`);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Favorite",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/favorites/{{fav_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{fav_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Retrieved\", function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Favorite",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token={{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/favorites/{{fav_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "favorites",
+                "{{fav_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Deleted\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://airportgap.com/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
