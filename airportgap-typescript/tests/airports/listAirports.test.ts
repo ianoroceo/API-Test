@@ -4,7 +4,7 @@ import { ApiClient } from '../../src/http/apiClient.js'
 describe('Airports list', () => {
   const api = new ApiClient()
 
-  it('@smoke first page has 30 items and links', async () => {
+  it('@smoke Verify that first page has 30 items and links', async () => {
     const r = await api.base.get('/airports')
     expect(r.status).toBe(200)
     const data = r.data?.data
