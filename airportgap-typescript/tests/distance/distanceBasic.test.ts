@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { ApiClient } from '../../src/http/apiClient.js'
-
-describe('Distance basic tests', () => {
+import { ApiClient } from '../../src/http/apiClient'
+describe('Distance basic', () => {
   const api = new ApiClient()
-
-  it('Verify that KIX <-> NRT has unit values', async () => {
+  it('KIX <-> NRT has unit values', async () => {
     const r = await api.base.post('/airports/distance', { from: 'KIX', to: 'NRT' })
     expect(r.status).toBe(200)
     const a = r.data?.data?.attributes
